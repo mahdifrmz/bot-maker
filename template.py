@@ -1,8 +1,8 @@
 import logging
 import uuid
 import os
-from telegram import Update, Message
-from telegram.ext import ApplicationBuilder, ContextTypes, CommandHandler
+from telegram import Update
+from telegram.ext import ApplicationBuilder, ContextTypes, CommandHandler, MessageHandler,filters
 from pathlib import Path
 import aiofiles
 
@@ -212,3 +212,23 @@ async def handleHelp(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await context.bot.send_message(chat_id=id, text=RESPONSE_HELP)
     else:
         await context.bot.send_message(chat_id=id, text=RESPONSE_INVALID)
+
+logging.basicConfig(
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    level=logging.INFO
+)
+
+if __name__ == "main":
+    
+    application = ApplicationBuilder().token('TOKEN').build()
+
+    message_handler = MessageHandler(~filters.COMMAND, handleMessage)
+    application.add_handler(message_handler)
+
+    command1_handler = CommandHandler(COMMAND1_NAME, handleCommand1)
+    application.add_handler(command1_handler)
+
+    command2_handler = CommandHandler(COMMAND2_NAME, handleCommand2)
+    application.add_handler(command2_handler)
+
+    application.run_polling()
