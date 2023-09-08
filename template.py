@@ -6,6 +6,9 @@ from telegram.ext import ApplicationBuilder, ContextTypes, CommandHandler, Messa
 from pathlib import Path
 import aiofiles
 
+BOT_TOKEN = '6107216509:AAGSIEC4W0ReW-pnThSqNwh823O5Hya5shk'
+STORAGE_ROOT = ''
+
 MESSAGE_TYPE_TEXT = 1
 MESSAGE_TYPE_IMAGE = 2
 MESSAGE_TYPE_AUDIO = 3
@@ -68,7 +71,7 @@ class StateManager:
 
 class Storage:
 
-    root = Path('')
+    root = Path(STORAGE_ROOT)
 
     def generateUuid() -> str:
         return uuid.uuid4().hex
@@ -111,7 +114,7 @@ class Storage:
 async def recvFile(state:UserState, file):
     if(type(file) == type('')):
         path = Storage.path(state.dirId, state.count, None)
-        async with aiofiles.open('filename', mode='w') as f:
+        async with aiofiles.open(path, mode='w') as f:
             await f.write(file)
     else:
         path = Storage.path(state.dirId, state.count, file.file_name)
@@ -218,9 +221,9 @@ logging.basicConfig(
     level=logging.INFO
 )
 
-if __name__ == "main":
-    
-    application = ApplicationBuilder().token('TOKEN').build()
+if __name__ == "__main__":
+
+    application = ApplicationBuilder().token(BOT_TOKEN).build()
 
     message_handler = MessageHandler(~filters.COMMAND, handleMessage)
     application.add_handler(message_handler)
