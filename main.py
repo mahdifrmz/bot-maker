@@ -2,7 +2,7 @@ MESSAGE_TYPE_TEXT = 1
 MESSAGE_TYPE_IMAGE = 2
 MESSAGE_TYPE_AUDIO = 3
 MESSAGE_TYPE_VIDEO = 4
-MESSAGE_TYPE_FILE = 5
+MESSAGE_TYPE_DOC = 5
 
 class Step:
     def __init__(self, question:str, failure:str, mtype:int):
