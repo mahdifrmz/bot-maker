@@ -1,7 +1,9 @@
 import logging
+import uuid
+import os
 from telegram import Update, Message
 from telegram.ext import ApplicationBuilder, ContextTypes, CommandHandler
-
+from pathlib import Path
 import aiofiles
 
 MESSAGE_TYPE_TEXT = 1
@@ -65,15 +67,46 @@ class StateManager:
         del StateManager.states[id]
 
 class Storage:
+
+    root = Path('')
+
+    def generateUuid() -> str:
+        return uuid.uuid4().hex
+
+    def rmdir(directory):
+        directory = Path(directory)
+        for item in directory.iterdir():
+            if item.is_dir():
+                Storage.rmdir(item)
+            else:
+                item.unlink()
+        directory.rmdir()
     
     def remove(dirId:str):
-        pass
+        path = Storage.dirPath(dirId)
+        Storage.rmdir(path)
+
+    async def create() -> str:
+        dirId = Storage.generateUuid()
+        path = Storage.dirPath(dirId)
+        os.mkdir(path)
+        return dirId
     
-    def create() -> int:
-        pass
+    def dirPath(dirId:str) -> Path:
+        return Storage.root.joinpath(dirId)
     
-    def path(dirId:str,num:int,filename:str) -> str:
-        pass
+    def objName(num:int,filename:str) -> str:
+        dotIndex = filename.rfind('.')
+        if(dotIndex > -1):
+            filename = filename[dotIndex,]
+        else:
+            filename = ''
+        return str(num).join([filename])
+        
+    def path(dirId:str,num:int,filename:str) -> Path:
+        dir = Storage.dirPath(dirId)
+        file = Storage.objName(num,filename)
+        return dir.joinpath(file)
 
 async def recvFile(state:UserState, file):
     if(type(file) == type('')):
@@ -84,15 +117,6 @@ async def recvFile(state:UserState, file):
         path = Storage.path(state.dirId, state.count, file.file_name)
         telegramFile = await file.get_file(file)
         await telegramFile.download_to_drive(path)
-
-def checkValidity(message:Message, type:int):
-    validity = False
-    validity |= (message.audio != None) and (type == MESSAGE_TYPE_AUDIO)
-    validity |= (message.video != None) and (type == MESSAGE_TYPE_VIDEO)
-    validity |= (message.document != None) and (type == MESSAGE_TYPE_DOC)
-    validity |= (message.text != None) and (type == MESSAGE_TYPE_TEXT)
-    validity |= (len(message.photo) > 0) and (type == MESSAGE_TYPE_IMAGE)
-    return validity
 
 async def handleCommand1(update: Update, context: ContextTypes.DEFAULT_TYPE):
     id = update.effective_chat.id
@@ -166,9 +190,12 @@ async def handleMessage(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def handleCancel(update: Update, context: ContextTypes.DEFAULT_TYPE):
     id = update.effective_chat.id
     state = StateManager.get(id)
-    Storage.remove(state.dirId)
-    StateManager.remove(id)
-    await context.bot.send_message(chat_id=id, text=RESPONSE_CANCEL)
+    if(state):
+        Storage.remove(state.dirId)
+        StateManager.remove(id)
+        await context.bot.send_message(chat_id=id, text=RESPONSE_CANCEL)
+    else:
+        await context.bot.send_message(chat_id=id, text=RESPONSE_INVALID)
 
 async def handleStart(update: Update, context: ContextTypes.DEFAULT_TYPE):
     id = update.effective_chat.id
