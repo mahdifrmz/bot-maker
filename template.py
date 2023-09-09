@@ -43,23 +43,18 @@ COMMAND2_NAME = 'bar'
 
 USERSTATE_CMD1_STEP1 = 231244
 USERSTATE_CMD1_STEP1_INFORM = 'Name the foo'
-USERSTATE_CMD1_STEP1_TYPE = MESSAGE_TYPE_TEXT
 
 USERSTATE_CMD1_STEP2 = 20932489
 USERSTATE_CMD1_STEP2_INFORM = 'upload a video describing the foo'
-USERSTATE_CMD1_STEP2_TYPE = MESSAGE_TYPE_VIDEO
 
-USERSTATE_CMD1_STEP3 = 231244
+USERSTATE_CMD1_STEP3 = 99231244
 USERSTATE_CMD1_STEP3_INFORM = 'send the sound your foo makes'
-USERSTATE_CMD1_STEP3_TYPE = MESSAGE_TYPE_AUDIO
 
 USERSTATE_CMD2_STEP1 = 4354354
 USERSTATE_CMD2_STEP1_INFORM = 'explain the bar'
-USERSTATE_CMD2_STEP1_TYPE = MESSAGE_TYPE_TEXT
 
 USERSTATE_CMD2_STEP2 = 12324235
 USERSTATE_CMD2_STEP2_INFORM = 'send the bar code'
-USERSTATE_CMD2_STEP2_TYPE = MESSAGE_TYPE_TEXT
 
 DEFAULT_EXTENSION = 'data'
 
@@ -126,11 +121,11 @@ class Storage:
     @staticmethod
     def path(dirId:str,num:int,ext:str) -> Path:
         dir = Storage.dirPath(dirId)
-        file = str(num) + '.' + ext
+        file = str(num) + ext
         return dir.joinpath(file)
 
 async def saveText(state:UserState, text: str):
-    path = Storage.path(state.dirId, state.count, 'txt')
+    path = Storage.path(state.dirId, state.count, '.txt')
     async with aiofiles.open(path, mode='w') as f:
         await f.write(text)
 
@@ -147,7 +142,7 @@ async def recvMedia(state:UserState, file: Audio | Video | Voice):
     await recvFile(path, file)
 
 async def recvPhoto(state:UserState, file: PhotoSize):
-    path = Storage.path(state.dirId, state.count, 'jpg')
+    path = Storage.path(state.dirId, state.count, '.jpg')
     await recvFile(path, file)
     
 def getChatId(update: Update) -> int:
@@ -208,8 +203,8 @@ async def handleMessage(update: Update, context: ContextTypes.DEFAULT_TYPE):
             await context.bot.send_message(chat_id=id, text=RESPONSE_INVALID)
     elif (state.step == USERSTATE_CMD1_STEP3):
         try:
-            if(message.audio):
-                await recvMedia(state,message.audio)
+            if(message.voice):
+                await recvMedia(state,message.voice)
                 StateManager.remove(id)
                 await context.bot.send_message(chat_id=id, text=COMMAND1_SUCCESS)
             else:
@@ -232,7 +227,6 @@ async def handleMessage(update: Update, context: ContextTypes.DEFAULT_TYPE):
             await context.bot.send_message(chat_id=id, text=COMMAND2_SUCCESS)
         else:
             await context.bot.send_message(chat_id=id, text=RESPONSE_INVALID)
-    
 
 async def handleCancel(update: Update, context: ContextTypes.DEFAULT_TYPE):
     id = getChatId(update)
