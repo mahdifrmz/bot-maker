@@ -1,0 +1,90 @@
+class UserState:
+    
+    def __init__(self):
+        self.count = 0
+        self.step = 0
+        self.dirId = ''
+
+
+class StateManager:
+
+    states : dict[int,UserState] = {}
+
+    @staticmethod
+    def get(id:int) -> UserState | None:
+        return StateManager.states.get(id)
+
+    @staticmethod
+    def create(id:int) -> UserState:
+        state = UserState()
+        StateManager.states[id] = state
+        return state
+    
+    @staticmethod
+    def remove(id:int):
+        del StateManager.states[id]
+
+class Storage:
+
+    root = Path(STORAGE_ROOT)
+
+    @staticmethod
+    def generateUuid() -> str:
+        return uuid.uuid4().hex
+    
+    @staticmethod
+    def rmdir(directory : Path):
+        directory = Path(directory)
+        for item in directory.iterdir():
+            if item.is_dir():
+                Storage.rmdir(item)
+            else:
+                item.unlink()
+        directory.rmdir()
+    
+    @staticmethod
+    def remove(dirId:str):
+        path = Storage.dirPath(dirId)
+        Storage.rmdir(path)
+
+    @staticmethod
+    def create() -> str:
+        dirId = Storage.generateUuid()
+        path = Storage.dirPath(dirId)
+        os.mkdir(path)
+        return dirId
+    
+    @staticmethod
+    def dirPath(dirId:str) -> Path:
+        return Storage.root.joinpath(dirId)
+    
+    @staticmethod
+    def path(dirId:str,num:int,ext:str) -> Path:
+        dir = Storage.dirPath(dirId)
+        file = str(num) + ext
+        return dir.joinpath(file)
+
+async def saveText(state:UserState, text: str):
+    path = Storage.path(state.dirId, state.count, '.txt')
+    async with aiofiles.open(path, mode='w') as f:
+        await f.write(text)
+
+def translateMIME(mime_type:str) -> str | None:
+    return guess_extension(mime_type)
+
+async def recvFile(path:Path, file: Audio | Video | Voice | PhotoSize):
+    telegramFile = await file.get_file()
+    await telegramFile.download_to_drive(path)
+
+async def recvMedia(state:UserState, file: Audio | Video | Voice):
+    ext = translateMIME(file.mime_type) or DEFAULT_EXTENSION if file.mime_type else DEFAULT_EXTENSION
+    path = Storage.path(state.dirId, state.count, ext)
+    await recvFile(path, file)
+
+async def recvPhoto(state:UserState, file: PhotoSize):
+    path = Storage.path(state.dirId, state.count, '.jpg')
+    await recvFile(path, file)
+    
+def getChatId(update: Update) -> int:
+    chat = update.effective_chat
+    return exit(1) if chat == None else chat.id

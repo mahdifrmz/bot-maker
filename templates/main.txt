@@ -1,0 +1,26 @@
+logging.basicConfig(
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    level=logging.INFO
+)
+
+# main
+
+if __name__ == "__main__":
+
+    application = ApplicationBuilder().token(BOT_TOKEN).build()
+
+    message_handler = MessageHandler(~filters.COMMAND, handleMessage)
+    application.add_handler(message_handler)
+
+    %
+
+    help_handler = CommandHandler(COMMAND_HELP, handleHelp)
+    application.add_handler(help_handler)
+
+    cancel_handler = CommandHandler(COMMAND_CANCEL, handleCancel)
+    application.add_handler(cancel_handler)
+
+    start_handler = CommandHandler(COMMAND_START, handleStart)
+    application.add_handler(start_handler)
+
+    application.run_polling()

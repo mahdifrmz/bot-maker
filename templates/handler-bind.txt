@@ -1,0 +1,2 @@
+    command%_handler = CommandHandler(COMMAND%_NAME, handleCommand%)
+    application.add_handler(command%_handler)

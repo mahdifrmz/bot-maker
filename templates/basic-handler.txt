@@ -1,0 +1,25 @@
+async def handleCancel(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    id = getChatId(update)
+    state = StateManager.get(id)
+    if(state):
+        Storage.remove(state.dirId)
+        StateManager.remove(id)
+        await context.bot.send_message(chat_id=id, text=RESPONSE_CANCEL)
+    else:
+        await context.bot.send_message(chat_id=id, text=RESPONSE_INVALID)
+
+async def handleStart(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    id = getChatId(update)
+    state = StateManager.get(id)
+    if(state == None):
+        await context.bot.send_message(chat_id=id, text=RESPONSE_START)
+    else:
+        await context.bot.send_message(chat_id=id, text=RESPONSE_INVALID)
+
+async def handleHelp(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    id = getChatId(update)
+    state = StateManager.get(id)
+    if(state == None):
+        await context.bot.send_message(chat_id=id, text=RESPONSE_HELP)
+    else:
+        await context.bot.send_message(chat_id=id, text=RESPONSE_INVALID)

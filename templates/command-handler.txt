@@ -1,0 +1,11 @@
+async def handleCommand%(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    id = getChatId(update)
+    state = StateManager.get(id)
+    if(state == None):
+        state = StateManager.create(id)
+        state.step = USERSTATE_CMD%_STEP%
+        state.count += 1
+        state.dirId = Storage.create()
+        await context.bot.send_message(chat_id=id, text=USERSTATE_CMD%_STEP%_INFORM)
+    else:
+        await context.bot.send_message(chat_id=id, text=RESPONSE_INVALID)
