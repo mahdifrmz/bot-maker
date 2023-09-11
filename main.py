@@ -22,14 +22,19 @@ commandHandlerTemplate = loadTemplate('command-handler')
 commandSingleHandlerTemplate = loadTemplate('command-single-handler')
 messageHandlerTemplate = loadTemplate('message-handler')
 stepHandlerTemplate = loadTemplate('step-handler')
-stepHandlerMediaTemplate = loadTemplate('step-handler-media')
+stepMediaTemplate = loadTemplate('step-media')
+stepPhotoTemplate = loadTemplate('step-photo')
+stepTextTemplate = loadTemplate('step-text')
+stepNextTemplate = loadTemplate('step-next')
+stepEndTemplate = loadTemplate('step-end')
 handlerBindTemplate = loadTemplate('handler-bind')
 
 RENDER_ERROR = 'number of args must be equal to the number of template place holders'
 
-def render(template:str, args : list[str]):
+def render(template:str, args : list[str], raw : bool = False):
     for arg in args:
-        arg.replace('\n','\\n')
+        if(not raw):
+            arg.replace('\n','\\n')
         if(template.find('%') > -1):
             template = template.replace('%', arg, 1)
         else:
@@ -37,6 +42,18 @@ def render(template:str, args : list[str]):
     if(template.find('%') > 1):
         raise Exception(RENDER_ERROR)
     return template
+
+def getMediaTypePropertyName(mtype:int) -> str:
+    if(mtype == MESSAGE_TYPE_TEXT):
+        return 'text'
+    elif(mtype == MESSAGE_TYPE_DOC):
+        return 'document'
+    elif(mtype == MESSAGE_TYPE_AUDIO):
+        return 'audio'
+    elif(mtype == MESSAGE_TYPE_VIDEO):
+        return 'video'
+    else:
+        return 'photo != None and len(message.photo) > 0 and message.photo[-1] != None'
 
 class Step:
 
@@ -163,18 +180,38 @@ class Generator:
     def isLast(self,command: Command, step: Step) -> bool:
         return len(command.steps) > 0 and command.steps[-1] == step
     
+    def getDataBlock(self,command: Command, step: Step):
+        getDataBlock = ''
+        if (step.mtype == MESSAGE_TYPE_TEXT):
+            getDataBlock = stepTextTemplate
+        elif (step.mtype == MESSAGE_TYPE_IMAGE):
+            getDataBlock = stepPhotoTemplate
+        else:
+            getDataBlock = render(stepMediaTemplate,[])
+        return getDataBlock
+    
+    def getTransitionBlock(self,command: Command, step: Step):
+        transitionBlock = ''
+        if (self.isLast(command,step)):
+            transitionBlock = render(stepEndTemplate,[
+                str(command.index)
+            ])
+        else:
+            transitionBlock = render(stepNextTemplate,[
+                str(command.index),
+                str(step.index + 1),
+                str(command.index),
+                str(step.index + 1),
+            ])
+        return transitionBlock
 
-    def generateStepHandler(self):
-        
-        temp1 = '\telif (state.step == USERSTATE_CMD%_STEP%):'
-        
-        
+    def generateMessageHandler(self):
         for command in self.bot.commands:
             for step in command.steps:
-                code = ''
-                code += render(temp1,[str(command.index),str(step.index)])
-                
-
+                getDataBlock = self.getDataBlock(command,step)
+                transitionBlock = self.getTransitionBlock(command,step)
+                code = render(stepHandlerTemplate,[getDataBlock + transitionBlock] , True)
+                self.write(code)
 
     def generateBasicHandlers(self):
         self.write(basicHandlerTemplate)
