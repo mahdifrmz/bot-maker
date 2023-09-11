@@ -30,7 +30,7 @@ RENDER_ERROR = 'number of args must be equal to the number of template place hol
 def render(template:str, args : list[str]):
     for arg in args:
         arg.replace('\n','\\n')
-        if(arg.find('%') > -1):
+        if(template.find('%') > -1):
             template = template.replace('%', arg, 1)
         else:
             raise Exception(RENDER_ERROR)
@@ -159,6 +159,22 @@ class Generator:
                     str(command.index), '1',
                 ])
                 self.write(code)
+
+    def isLast(self,command: Command, step: Step) -> bool:
+        return len(command.steps) > 0 and command.steps[-1] == step
+    
+
+    def generateStepHandler(self):
+        
+        temp1 = '\telif (state.step == USERSTATE_CMD%_STEP%):'
+        
+        
+        for command in self.bot.commands:
+            for step in command.steps:
+                code = ''
+                code += render(temp1,[str(command.index),str(step.index)])
+                
+
 
     def generateBasicHandlers(self):
         self.write(basicHandlerTemplate)
