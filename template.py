@@ -272,12 +272,13 @@ async def handleMessage(update: Update, context: ContextTypes.DEFAULT_TYPE):
         else:
             await context.bot.send_message(chat_id=id, text=RESPONSE_INVALID)
 
+# main
+
 logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     level=logging.INFO
 )
 
-# main
 
 if __name__ == "__main__":
 

@@ -19,6 +19,7 @@ stepTemplate = loadTemplate('step')
 commandTemplate = loadTemplate('command')
 basicHandlerTemplate = loadTemplate('basic-handler')
 commandHandlerTemplate = loadTemplate('command-handler')
+commandSingleHandlerTemplate = loadTemplate('command-single-handler')
 messageHandlerTemplate = loadTemplate('message-handler')
 stepHandlerTemplate = loadTemplate('step-handler')
 stepHandlerMediaTemplate = loadTemplate('step-handler-media')
@@ -74,6 +75,12 @@ class Generator:
         self.src = ''
         self.assignIds()
         self.generateImports()
+        self.generateConstants()
+        self.generateConfigs()
+        self.generateCommandDefs()
+        self.generateUtils()
+        self.generateBasicHandlers()
+        self.generateCommandHandlers()
 
     def write(self,code:str):
         self.src += (code + '\n')
@@ -137,6 +144,24 @@ class Generator:
     def generateUtils(self):
         self.write(utilTemplate)
 
+    def generateCommandHandlers(self):
+        for command in self.bot.commands:
+            if(len(command.steps) == 0):
+                code = render(commandSingleHandlerTemplate,[
+                    str(command.index),
+                    str(command.index),
+                ])
+                self.write(code)
+            else:
+                code = render(commandHandlerTemplate,[
+                    str(command.index),
+                    str(command.index), '1',
+                    str(command.index), '1',
+                ])
+                self.write(code)
+
+    def generateBasicHandlers(self):
+        self.write(basicHandlerTemplate)
 
 if __name__ == "main":
     bot = Bot('TOKEN::38u38i__','./storage','welcome','cancel','help','invalid')

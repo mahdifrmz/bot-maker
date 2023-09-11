@@ -1,0 +1,3 @@
+async def handleCommand%(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    id = getChatId(update)
+    await context.bot.send_message(chat_id=id, text=COMMAND%_SUCCESS)
