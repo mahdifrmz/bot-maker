@@ -1,3 +1,5 @@
+# imports
+
 import logging
 import uuid
 import os
@@ -7,14 +9,24 @@ from pathlib import Path
 import aiofiles
 from mimetypes import guess_extension
 
-BOT_TOKEN = '6107216509:AAGSIEC4W0ReW-pnThSqNwh823O5Hya5shk'
-STORAGE_ROOT = './storage'
+# constants
 
 MESSAGE_TYPE_TEXT = 1
 MESSAGE_TYPE_IMAGE = 2
 MESSAGE_TYPE_AUDIO = 3
 MESSAGE_TYPE_VIDEO = 4
 MESSAGE_TYPE_DOC = 5
+
+DEFAULT_EXTENSION = 'data'
+
+COMMAND_HELP = 'help'
+COMMAND_START = 'start'
+COMMAND_CANCEL = 'cancel'
+
+# configs
+
+BOT_TOKEN = '6107216509:AAGSIEC4W0ReW-pnThSqNwh823O5Hya5shk'
+STORAGE_ROOT = './storage'
 
 RESPONSE_CANCEL = 'Ok, anything else?'
 RESPONSE_HELP = '''
@@ -28,18 +40,18 @@ This bot has the following commands:
 /cancel : cancels
 '''
 
-COMMAND_HELP = 'help'
-COMMAND_START = 'start'
-COMMAND_CANCEL = 'cancel'
-
 RESPONSE_INVALID = 'Sorry, that\'s an invalid input'
 RESPONSE_START = 'Welcome to the Sample Bot!\nUse /help to get the manual for using this bot'
+
+# commands
 
 COMMAND1_SUCCESS = 'successfully fooed'
 COMMAND1_NAME = 'foo'
 
 COMMAND2_SUCCESS = 'successfully barred'
 COMMAND2_NAME = 'bar'
+
+# steps
 
 USERSTATE_CMD1_STEP1 = 231244
 USERSTATE_CMD1_STEP1_INFORM = 'Name the foo'
@@ -56,7 +68,7 @@ USERSTATE_CMD2_STEP1_INFORM = 'explain the bar'
 USERSTATE_CMD2_STEP2 = 12324235
 USERSTATE_CMD2_STEP2_INFORM = 'send the bar code'
 
-DEFAULT_EXTENSION = 'data'
+# utils
 
 class UserState:
     
@@ -149,6 +161,36 @@ def getChatId(update: Update) -> int:
     chat = update.effective_chat
     return exit(1) if chat == None else chat.id
 
+# basic handlers
+
+async def handleCancel(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    id = getChatId(update)
+    state = StateManager.get(id)
+    if(state):
+        Storage.remove(state.dirId)
+        StateManager.remove(id)
+        await context.bot.send_message(chat_id=id, text=RESPONSE_CANCEL)
+    else:
+        await context.bot.send_message(chat_id=id, text=RESPONSE_INVALID)
+
+async def handleStart(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    id = getChatId(update)
+    state = StateManager.get(id)
+    if(state == None):
+        await context.bot.send_message(chat_id=id, text=RESPONSE_START)
+    else:
+        await context.bot.send_message(chat_id=id, text=RESPONSE_INVALID)
+
+async def handleHelp(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    id = getChatId(update)
+    state = StateManager.get(id)
+    if(state == None):
+        await context.bot.send_message(chat_id=id, text=RESPONSE_HELP)
+    else:
+        await context.bot.send_message(chat_id=id, text=RESPONSE_INVALID)
+
+# command handlers
+
 async def handleCommand1(update: Update, context: ContextTypes.DEFAULT_TYPE):
     id = getChatId(update)
     state = StateManager.get(id)
@@ -172,6 +214,8 @@ async def handleCommand2(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await context.bot.send_message(chat_id=id, text=USERSTATE_CMD2_STEP1_INFORM)
     else:
         await context.bot.send_message(chat_id=id, text=RESPONSE_INVALID)
+
+# message handler
 
 async def handleMessage(update: Update, context: ContextTypes.DEFAULT_TYPE):
     message = update.message
@@ -228,36 +272,12 @@ async def handleMessage(update: Update, context: ContextTypes.DEFAULT_TYPE):
         else:
             await context.bot.send_message(chat_id=id, text=RESPONSE_INVALID)
 
-async def handleCancel(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    id = getChatId(update)
-    state = StateManager.get(id)
-    if(state):
-        Storage.remove(state.dirId)
-        StateManager.remove(id)
-        await context.bot.send_message(chat_id=id, text=RESPONSE_CANCEL)
-    else:
-        await context.bot.send_message(chat_id=id, text=RESPONSE_INVALID)
-
-async def handleStart(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    id = getChatId(update)
-    state = StateManager.get(id)
-    if(state == None):
-        await context.bot.send_message(chat_id=id, text=RESPONSE_START)
-    else:
-        await context.bot.send_message(chat_id=id, text=RESPONSE_INVALID)
-
-async def handleHelp(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    id = getChatId(update)
-    state = StateManager.get(id)
-    if(state == None):
-        await context.bot.send_message(chat_id=id, text=RESPONSE_HELP)
-    else:
-        await context.bot.send_message(chat_id=id, text=RESPONSE_INVALID)
-
 logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     level=logging.INFO
 )
+
+# main
 
 if __name__ == "__main__":
 
