@@ -87,7 +87,7 @@ class Bot:
         self.commands.append(command)
 
 class Generator:
-    def generate(self,bot:Bot):
+    def generate(self,bot:Bot) -> str:
         self.bot = bot
         self.src = ''
         self.assignIds()
@@ -99,6 +99,9 @@ class Generator:
         self.generateBasicHandlers()
         self.generateCommandHandlers()
         self.generateMessageHandler()
+        self.generateMain()
+        return self.src
+
 
     def write(self,code:str):
         self.src += (code + '\n')
@@ -225,6 +228,20 @@ class Generator:
     def generateBasicHandlers(self):
         self.write(basicHandlerTemplate)
 
+    def generateMain(self):
+        bindings = ''
+        for command in self.bot.commands:
+            index = str(command.index)
+            bindings += render(handlerBindTemplate,[
+                index,
+                index,
+                index,
+                index,
+            ])
+        code = render(mainTemplate,[bindings],True)
+        self.write(code)
+
 if __name__ == "main":
     bot = Bot('TOKEN::38u38i__','./storage','welcome','cancel','help','invalid')
-    Generator().generate(bot)
+    src = Generator().generate(bot)
+    print(src)
