@@ -183,7 +183,7 @@ class Generator:
     def isLast(self,command: Command, step: Step) -> bool:
         return len(command.steps) > 0 and command.steps[-1] == step
     
-    def getDataBlock(self,command: Command, step: Step):
+    def getDataBlock(self, step: Step):
         getDataBlock = ''
         if (step.mtype == MESSAGE_TYPE_TEXT):
             getDataBlock = stepTextTemplate
@@ -214,7 +214,7 @@ class Generator:
         body = ''
         for command in self.bot.commands:
             for step in command.steps:
-                getDataBlock = self.getDataBlock(command,step)
+                getDataBlock = self.getDataBlock(step)
                 transitionBlock = self.getTransitionBlock(command,step)
                 code = render(stepHandlerTemplate,[
                     str(command.index),
