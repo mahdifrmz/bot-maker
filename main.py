@@ -31,19 +31,17 @@ handlerBindTemplate = loadTemplate('handler-bind')
 
 RENDER_ERROR = 'number of args must be equal to the number of template place holders'
 
-def render(template:str, args : list[str], raw : bool = False):
+def render(template:str, args : list[str], place_holder : str = '%'):
     for arg in args:
-        if(not raw):
-            arg.replace('\n','\\n')
-        if(template.find('%') > -1):
-            template = template.replace('%', arg, 1)
+        if(template.find(place_holder) > -1):
+            template = template.replace(place_holder, arg, 1)
         else:
             raise Exception(RENDER_ERROR)
-    if(template.find('%') > 1):
+    if(template.find(place_holder) > 1):
         raise Exception(RENDER_ERROR)
     return template
 
-def getMediaTypePropertyName(mtype:int) -> str:
+def getMediaTypePropertyName(mtype:int,condition:bool = False) -> str:
     if(mtype == MESSAGE_TYPE_TEXT):
         return 'text'
     elif(mtype == MESSAGE_TYPE_DOC):
@@ -52,9 +50,10 @@ def getMediaTypePropertyName(mtype:int) -> str:
         return 'audio'
     elif(mtype == MESSAGE_TYPE_VIDEO):
         return 'video'
-    else:
+    elif(condition):
         return 'photo != None and len(message.photo) > 0 and message.photo[-1] != None'
-
+    else:
+        return 'message.photo[-1]'
 class Step:
 
     def __init__(self, question:str, mtype:int):
@@ -127,32 +126,32 @@ class Generator:
 
     def generateConfigs(self):
         code = render(configTemplate,[
-            self.bot.token,
-            self.bot.storage_root,
-            self.bot.resp_cancel,
-            self.bot.resp_help,
-            self.bot.resp_invalid,
-            self.bot.resp_start,
+            repr(self.bot.token),
+            repr(self.bot.storage_root),
+            repr(self.bot.resp_cancel),
+            repr(self.bot.resp_help),
+            repr(self.bot.resp_invalid),
+            repr(self.bot.resp_start),
         ])
         self.write(code)
 
     def generateCommandDef(self,command:Command):
         code = render(commandTemplate,[
             str(command.index),
-            command.name,
+            repr(command.name),
             str(command.index),
-            command.success
+            repr(command.success)
         ])
         self.write(code)
 
     def generateStepDef(self, command:Command, step:Step):
-        code = render(commandTemplate,[
+        code = render(stepTemplate,[
             str(command.index),
             str(step.index),
             str(step.id),
             str(command.index),
             str(step.index),
-            step.question,
+            repr(step.question),
         ])
         self.write(code)
 
@@ -191,7 +190,9 @@ class Generator:
         elif (step.mtype == MESSAGE_TYPE_IMAGE):
             getDataBlock = stepPhotoTemplate
         else:
-            getDataBlock = render(stepMediaTemplate,[])
+            getDataBlock = render(stepMediaTemplate,[
+                getMediaTypePropertyName(step.mtype)
+            ])
         return getDataBlock
     
     def getTransitionBlock(self,command: Command, step: Step):
@@ -218,12 +219,12 @@ class Generator:
                 code = render(stepHandlerTemplate,[
                     str(command.index),
                     str(step.index),
-                    getMediaTypePropertyName(step.mtype),
+                    getMediaTypePropertyName(step.mtype,True),
                     getDataBlock + transitionBlock
-                ] , True)
+                ])
                 body += code
-        code = render(messageHandlerTemplate,[body],True)
-        self.write(body)
+        code = render(messageHandlerTemplate,[body])
+        self.write(code)
 
     def generateBasicHandlers(self):
         self.write(basicHandlerTemplate)
@@ -238,10 +239,20 @@ class Generator:
                 index,
                 index,
             ])
-        code = render(mainTemplate,[bindings],True)
+        code = render(mainTemplate,[bindings],'$')
         self.write(code)
 
-if __name__ == "main":
-    bot = Bot('TOKEN::38u38i__','./storage','welcome','cancel','help','invalid')
+if __name__ == "__main__":
+    bot = Bot('TOKEN::38u38i__','./storage','welcome','cancel','help','invalid',[
+        Command('foo','foo suc',[
+            Step('name the foo',MESSAGE_TYPE_TEXT),
+            Step('send foo vid',MESSAGE_TYPE_VIDEO),
+            Step('send foo aud',MESSAGE_TYPE_AUDIO),
+        ]),
+        Command('bar','bar suc',[
+            Step('name the bar',MESSAGE_TYPE_TEXT),
+            Step('send bar code',MESSAGE_TYPE_TEXT),
+        ]),
+    ])
     src = Generator().generate(bot)
     print(src)

@@ -1,5 +1,5 @@
-        try:
-            await recvPhoto(state,message.photo[-1])
-        except:
-            await context.bot.send_message(chat_id=id, text=RESPONSE_INVALID)
-            return
+            try:
+                await recvPhoto(state,message.photo[-1])
+            except:
+                await context.bot.send_message(chat_id=id, text=RESPONSE_INVALID)
+                return

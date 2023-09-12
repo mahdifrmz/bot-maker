@@ -1,5 +1,5 @@
-elif (state.step == USERSTATE_CMD%_STEP%):
-    if(message.%):
+    elif (state.step == USERSTATE_CMD%_STEP%):
+        if(message.%):
 %
-    else:
-        await context.bot.send_message(chat_id=id, text=RESPONSE_INVALID)
+        else:
+            await context.bot.send_message(chat_id=id, text=RESPONSE_INVALID)

@@ -1,2 +1,2 @@
-        StateManager.remove(id)
-        await context.bot.send_message(chat_id=id, text=COMMAND%_SUCCESS)
+            StateManager.remove(id)
+            await context.bot.send_message(chat_id=id, text=COMMAND%_SUCCESS)

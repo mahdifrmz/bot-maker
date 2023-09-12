@@ -12,7 +12,7 @@ if __name__ == "__main__":
     message_handler = MessageHandler(~filters.COMMAND, handleMessage)
     application.add_handler(message_handler)
 
-    %
+$
 
     help_handler = CommandHandler(COMMAND_HELP, handleHelp)
     application.add_handler(help_handler)

@@ -1,3 +1,3 @@
-        state.count += 1
-        state.step = USERSTATE_CMD%_STEP%
-        await context.bot.send_message(chat_id=id, text=USERSTATE_CMD%_STEP%_INFORM)
+            state.count += 1
+            state.step = USERSTATE_CMD%_STEP%
+            await context.bot.send_message(chat_id=id, text=USERSTATE_CMD%_STEP%_INFORM)

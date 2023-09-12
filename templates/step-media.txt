@@ -1,5 +1,5 @@
-        try:
-            await recvMedia(state,message.%)
-        except:
-            await context.bot.send_message(chat_id=id, text=RESPONSE_INVALID)
-            return
+            try:
+                await recvMedia(state,message.%)
+            except:
+                await context.bot.send_message(chat_id=id, text=RESPONSE_INVALID)
+                return
