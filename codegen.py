@@ -73,7 +73,15 @@ class Command:
         self.steps.append(step)        
 
 class Bot:
-    def __init__(self, token:str, storage_root:str, resp_start:str, resp_cancel:str, resp_help:str, resp_invalid:str, commands:list[Command] = []):
+    def __init__(self, 
+                 token:str = '',
+                 storage_root:str = '',
+                 resp_start:str = '',
+                 resp_cancel:str = '',
+                 resp_help:str = '',
+                 resp_invalid:str = '',
+                 commands:list[Command] = []
+                 ):
         self.token = token
         self.storage_root = storage_root
         self.commands = commands
