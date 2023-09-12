@@ -98,6 +98,7 @@ class Generator:
         self.generateUtils()
         self.generateBasicHandlers()
         self.generateCommandHandlers()
+        self.generateMessageHandler()
 
     def write(self,code:str):
         self.src += (code + '\n')
@@ -206,12 +207,20 @@ class Generator:
         return transitionBlock
 
     def generateMessageHandler(self):
+        body = ''
         for command in self.bot.commands:
             for step in command.steps:
                 getDataBlock = self.getDataBlock(command,step)
                 transitionBlock = self.getTransitionBlock(command,step)
-                code = render(stepHandlerTemplate,[getDataBlock + transitionBlock] , True)
-                self.write(code)
+                code = render(stepHandlerTemplate,[
+                    str(command.index),
+                    str(step.index),
+                    getMediaTypePropertyName(step.mtype),
+                    getDataBlock + transitionBlock
+                ] , True)
+                body += code
+        code = render(messageHandlerTemplate,[body],True)
+        self.write(body)
 
     def generateBasicHandlers(self):
         self.write(basicHandlerTemplate)
