@@ -85,6 +85,60 @@ while True:
 
 window.close()
 
+# Commands Form
+
+commands_list = sg.Listbox([],size=(45,10))
+command_name = sg.In()
+command_success_message = sg.Multiline(size=(45,10))
+add_command_button = sg.Button('Add', key='_ADD_COMMAND_')
+delete_command_button = sg.Button('Delete', key='_DEL_COMMAND_')
+
+command_panel = [
+    [sg.Text('Commands:')],
+    [commands_list],
+    [sg.Text('\nCreate new command:\n')],
+    [sg.Text('Name:')],
+    [command_name],
+    [sg.Text('Success Message:')],
+    [command_success_message],
+    [add_command_button,delete_command_button,next_button()]
+]
+
+steps_list = sg.Listbox([],size=(45,10))
+step_question = sg.In()
+step_media = sg.Combo(['Text','Image','Video','Audio','Document'])
+add_step_button = sg.Button('Add', key='_ADD_STEP_')
+delete_step_button = sg.Button('Delete', key='_DEL_STEP_')
+
+step_panel = [
+    [sg.Text('Steps:')],
+    [steps_list],
+    [sg.Text('\nCreate new step:\n')],
+    [sg.Text('Success Message:')],
+    [step_question],
+    [sg.Text('Media type:')],
+    [step_media],
+    [add_step_button,delete_step_button]
+]
+
+window = sg.Window(WINDOW_TITLE, [[
+    sg.Column(command_panel),
+    sg.VerticalSeparator(),
+    sg.Column(step_panel),
+]])
+
+while True:
+    ev = window.read()
+    if ev == None:
+        continue
+    event, values = ev
+    if event == EVENT_NEXT_BUTTON:
+        break
+    elif event == sg.WIN_CLOSED:
+        exit(0)
+
+window.close()
+
 # Metadata Form
 
 cancel_message_field = sg.Multiline(size=(45,10))
