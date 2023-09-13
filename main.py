@@ -1,7 +1,7 @@
 import PySimpleGUI as sg
 import os
 from pathlib import Path
-from codegen import Bot, Generator
+from codegen import Bot, Generator, Command, Step
 
 WINDOW_TITLE = 'Bot Maker Wizard'
 EVENT_NEXT_BUTTON = '_NEXT_'
@@ -16,6 +16,7 @@ def next_button():
 
 def finish_button():
     return sg.Button('Finish',key = EVENT_FINISH_BUTTON)
+
 
 def error_empty(field:str):
     sg.popup_ok(field + ' field must be filled',title='Error')
@@ -87,7 +88,9 @@ window.close()
 
 # Commands Form
 
-commands_list = sg.Listbox([],size=(45,10))
+commands_list = []
+
+commands_listbox = sg.Listbox(commands_list, size=(45,10))
 command_name = sg.In()
 command_success_message = sg.Multiline(size=(45,10))
 add_command_button = sg.Button('Add', key='_ADD_COMMAND_')
@@ -95,7 +98,7 @@ delete_command_button = sg.Button('Delete', key='_DEL_COMMAND_')
 
 command_panel = [
     [sg.Text('Commands:')],
-    [commands_list],
+    [commands_listbox],
     [sg.Text('\nCreate new command:\n')],
     [sg.Text('Name:')],
     [command_name],
@@ -104,7 +107,9 @@ command_panel = [
     [add_command_button,delete_command_button,next_button()]
 ]
 
-steps_list = sg.Listbox([],size=(45,10))
+steps_list = []
+
+steps_list = sg.Listbox(steps_list, size=(45,10))
 step_question = sg.In()
 step_media = sg.Combo(['Text','Image','Video','Audio','Document'])
 add_step_button = sg.Button('Add', key='_ADD_STEP_')
@@ -127,6 +132,13 @@ window = sg.Window(WINDOW_TITLE, [[
     sg.Column(step_panel),
 ]])
 
+
+def hasCommand(bot:Bot, command_name:str) -> bool:
+    for cmd in bot.commands:
+        if cmd.name == command_name:
+            return True
+    return False
+
 while True:
     ev = window.read()
     if ev == None:
@@ -134,6 +146,19 @@ while True:
     event, values = ev
     if event == EVENT_NEXT_BUTTON:
         break
+    elif event == add_command_button.key:
+        fieldName = command_name.get()
+        fieldSucMes = command_success_message.get()
+        if(len(fieldName) == 0):
+            error_empty('command name')
+        elif(len(fieldSucMes) == 0):
+            error_empty('command success message')
+        elif(hasCommand(bot,fieldName)):
+            sg.popup_ok('Command names must be unique',title='Error')
+        else:
+            bot.commands.append(Command(fieldName,fieldSucMes))
+            commands_list.append(fieldName)
+            commands_listbox.update(commands_list)
     elif event == sg.WIN_CLOSED:
         exit(0)
 
