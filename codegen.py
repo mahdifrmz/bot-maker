@@ -63,9 +63,9 @@ class Step:
         self.index = 0
 
 class Command:
-    def __init__(self, name:str, success:str, steps:list[Step] = []):
+    def __init__(self, name:str, success:str, steps:list[Step] | None = None):
         self.name = name
-        self.steps = steps
+        self.steps = steps or []
         self.success = success
         self.index = 0
 
@@ -80,11 +80,11 @@ class Bot:
                  resp_cancel:str = '',
                  resp_help:str = '',
                  resp_invalid:str = '',
-                 commands:list[Command] = []
+                 commands:list[Command] | None = None
                  ):
         self.token = token
         self.storage_root = storage_root
-        self.commands = commands
+        self.commands = commands or []
         self.resp_start = resp_start
         self.resp_cancel = resp_cancel
         self.resp_help = resp_help
