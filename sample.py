@@ -1,3 +1,5 @@
+# imports
+
 import logging
 import uuid
 import os
@@ -6,6 +8,8 @@ from telegram.ext import ApplicationBuilder, ContextTypes, CommandHandler, Messa
 from pathlib import Path
 import aiofiles
 from mimetypes import guess_extension
+
+# constants
 
 MESSAGE_TYPE_TEXT = 1
 MESSAGE_TYPE_IMAGE = 2
@@ -19,29 +23,53 @@ COMMAND_HELP = 'help'
 COMMAND_START = 'start'
 COMMAND_CANCEL = 'cancel'
 
+# configs
+
 BOT_TOKEN = '6107216509:AAGSIEC4W0ReW-pnThSqNwh823O5Hya5shk'
 STORAGE_ROOT = './storage'
-RESPONSE_CANCEL = 'cancel'
-RESPONSE_HELP = 'help'
-RESPONSE_INVALID = 'invalid'
-RESPONSE_START = 'welcome'
 
+RESPONSE_CANCEL = 'Ok, anything else?'
+RESPONSE_HELP = '''
+
+This bot has the following commands:
+
+/foo : foo
+/bar : bar
+
+/help : shows this help
+/cancel : cancels
+'''
+
+RESPONSE_INVALID = 'Sorry, that\'s an invalid input'
+RESPONSE_START = 'Welcome to the Sample Bot!\nUse /help to get the manual for using this bot'
+
+# commands
+
+COMMAND1_SUCCESS = 'successfully fooed'
 COMMAND1_NAME = 'foo'
-COMMAND1_SUCCESS = 'foo suc'
 
-USERSTATE_CMD1_STEP1 = 1
-USERSTATE_CMD1_STEP1_INFORM = 'name the foo'
-USERSTATE_CMD1_STEP2 = 2
-USERSTATE_CMD1_STEP2_INFORM = 'send foo vid'
-USERSTATE_CMD1_STEP3 = 3
-USERSTATE_CMD1_STEP3_INFORM = 'send foo aud'
+COMMAND2_SUCCESS = 'successfully barred'
 COMMAND2_NAME = 'bar'
-COMMAND2_SUCCESS = 'bar suc'
 
-USERSTATE_CMD2_STEP1 = 4
-USERSTATE_CMD2_STEP1_INFORM = 'name the bar'
-USERSTATE_CMD2_STEP2 = 5
-USERSTATE_CMD2_STEP2_INFORM = 'send bar code'
+# steps
+
+USERSTATE_CMD1_STEP1 = 231244
+USERSTATE_CMD1_STEP1_INFORM = 'Name the foo'
+
+USERSTATE_CMD1_STEP2 = 20932489
+USERSTATE_CMD1_STEP2_INFORM = 'upload a video describing the foo'
+
+USERSTATE_CMD1_STEP3 = 99231244
+USERSTATE_CMD1_STEP3_INFORM = 'send the sound your foo makes'
+
+USERSTATE_CMD2_STEP1 = 4354354
+USERSTATE_CMD2_STEP1_INFORM = 'explain the bar'
+
+USERSTATE_CMD2_STEP2 = 12324235
+USERSTATE_CMD2_STEP2_INFORM = 'send the bar code'
+
+# utils
+
 class UserState:
     
     def __init__(self):
@@ -133,6 +161,8 @@ def getChatId(update: Update) -> int:
     chat = update.effective_chat
     return exit(1) if chat == None else chat.id
 
+# basic handlers
+
 async def handleCancel(update: Update, context: ContextTypes.DEFAULT_TYPE):
     id = getChatId(update)
     state = StateManager.get(id)
@@ -159,6 +189,8 @@ async def handleHelp(update: Update, context: ContextTypes.DEFAULT_TYPE):
     else:
         await context.bot.send_message(chat_id=id, text=RESPONSE_INVALID)
 
+# command handlers
+
 async def handleCommand1(update: Update, context: ContextTypes.DEFAULT_TYPE):
     id = getChatId(update)
     state = StateManager.get(id)
@@ -183,6 +215,8 @@ async def handleCommand2(update: Update, context: ContextTypes.DEFAULT_TYPE):
     else:
         await context.bot.send_message(chat_id=id, text=RESPONSE_INVALID)
 
+# message handler
+
 async def handleMessage(update: Update, context: ContextTypes.DEFAULT_TYPE):
     message = update.message
     if(message == None):
@@ -191,37 +225,37 @@ async def handleMessage(update: Update, context: ContextTypes.DEFAULT_TYPE):
     state = StateManager.get(id)
     if(state == None):
         await context.bot.send_message(chat_id=id, text=RESPONSE_INVALID)
+    # COMMAND 1
     elif (state.step == USERSTATE_CMD1_STEP1):
         if(message.text):
-            await saveText(state, message.text)
+            await saveText(state,message.text)
             state.count += 1
             state.step = USERSTATE_CMD1_STEP2
             await context.bot.send_message(chat_id=id, text=USERSTATE_CMD1_STEP2_INFORM)
         else:
             await context.bot.send_message(chat_id=id, text=RESPONSE_INVALID)
     elif (state.step == USERSTATE_CMD1_STEP2):
-        if(message.video):
-            try:
+        try:
+            if(message.video):
                 await recvMedia(state,message.video)
-            except:
+                state.count += 1
+                state.step = USERSTATE_CMD1_STEP3
+                await context.bot.send_message(chat_id=id, text=USERSTATE_CMD1_STEP3_INFORM)
+            else:
                 await context.bot.send_message(chat_id=id, text=RESPONSE_INVALID)
-                return
-            state.count += 1
-            state.step = USERSTATE_CMD1_STEP3
-            await context.bot.send_message(chat_id=id, text=USERSTATE_CMD1_STEP3_INFORM)
-        else:
+        except:
             await context.bot.send_message(chat_id=id, text=RESPONSE_INVALID)
     elif (state.step == USERSTATE_CMD1_STEP3):
-        if(message.audio):
-            try:
-                await recvMedia(state,message.audio)
-            except:
+        try:
+            if(message.voice):
+                await recvMedia(state,message.voice)
+                StateManager.remove(id)
+                await context.bot.send_message(chat_id=id, text=COMMAND1_SUCCESS)
+            else:
                 await context.bot.send_message(chat_id=id, text=RESPONSE_INVALID)
-                return
-            StateManager.remove(id)
-            await context.bot.send_message(chat_id=id, text=COMMAND1_SUCCESS)
-        else:
+        except:
             await context.bot.send_message(chat_id=id, text=RESPONSE_INVALID)
+    # COMMAND 2
     elif (state.step == USERSTATE_CMD2_STEP1):
         if(message.text):
             await saveText(state, message.text)
@@ -232,18 +266,19 @@ async def handleMessage(update: Update, context: ContextTypes.DEFAULT_TYPE):
             await context.bot.send_message(chat_id=id, text=RESPONSE_INVALID)
     elif (state.step == USERSTATE_CMD2_STEP2):
         if(message.text):
-            await saveText(state, message.text)
+            await saveText(state,message.text)
             StateManager.remove(id)
             await context.bot.send_message(chat_id=id, text=COMMAND2_SUCCESS)
         else:
             await context.bot.send_message(chat_id=id, text=RESPONSE_INVALID)
+
+# main
 
 logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     level=logging.INFO
 )
 
-# main
 
 if __name__ == "__main__":
 
@@ -258,7 +293,6 @@ if __name__ == "__main__":
     command2_handler = CommandHandler(COMMAND2_NAME, handleCommand2)
     application.add_handler(command2_handler)
 
-
     help_handler = CommandHandler(COMMAND_HELP, handleHelp)
     application.add_handler(help_handler)
 
@@ -269,4 +303,3 @@ if __name__ == "__main__":
     application.add_handler(start_handler)
 
     application.run_polling()
-
