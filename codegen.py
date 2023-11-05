@@ -249,18 +249,3 @@ class Generator:
             ])
         code = render(mainTemplate,[bindings],'$')
         self.write(code)
-
-if __name__ == "__main__":
-    bot = Bot('6107216509:AAGSIEC4W0ReW-pnThSqNwh823O5Hya5shk','./storage','welcome','cancel','help','invalid',[
-        Command('foo','foo suc',[
-            Step('name the foo',MESSAGE_TYPE_TEXT),
-            Step('send foo vid',MESSAGE_TYPE_VIDEO),
-            Step('send foo aud',MESSAGE_TYPE_AUDIO),
-        ]),
-        Command('bar','bar suc',[
-            Step('name the bar',MESSAGE_TYPE_TEXT),
-            Step('send bar code',MESSAGE_TYPE_TEXT),
-        ]),
-    ])
-    src = Generator().generate(bot)
-    print(src)
