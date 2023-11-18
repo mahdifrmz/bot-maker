@@ -1,4 +1,4 @@
 #!/usr/bin/fish
 rm -rf storage
 mkdir storage
-https_proxy="socks5://127.0.0.1:1793" python3 $argv[1]
+https_proxy="socks5://127.0.0.1:1794" python3 $argv[1]
