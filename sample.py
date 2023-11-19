@@ -58,8 +58,6 @@ COMMAND1_NAME = 'foo'
 COMMAND2_SUCCESS = 'successfully barred'
 COMMAND2_NAME = 'bar'
 
-COMMAND3_NAME = 'qin'
-
 # steps
 
 USERSTATE_CMD1_STEP1 = 231244

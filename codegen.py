@@ -1,3 +1,8 @@
+import os
+import sys
+from pathlib import Path
+from importlib.util import spec_from_file_location, module_from_spec
+
 MESSAGE_TYPE_TEXT = 1
 MESSAGE_TYPE_IMAGE = 2
 MESSAGE_TYPE_AUDIO = 3
@@ -71,6 +76,33 @@ class Command:
 
     def addStep(self,step:Step):
         self.steps.append(step)        
+
+class Plugin:
+
+    def __init__(self, name:str, commands: list[str]):
+        self.name = name
+        self.commands = commands
+
+def discoverPlugins(path: Path) -> list[Plugin]:
+    plugins = []
+    for entry in os.listdir(path):
+        entryPath = path.joinpath(entry)
+        if entryPath.is_dir():
+            rootFilePath = entryPath.joinpath('plugin.py')
+            if rootFilePath.exists():
+                modName = 'plugin'
+                spec = spec_from_file_location(modName,rootFilePath)
+                if(spec == None):
+                    continue
+                mod = module_from_spec(spec)
+                sys.modules[modName] = mod
+                if(spec.loader == None):
+                    continue
+                spec.loader.exec_module(mod)
+                if(mod.handlers != None):
+                    commandNames = list(dict.keys(mod.handlers))
+                    plugins.append(Plugin(entry,commandNames))
+    return plugins
 
 class Bot:
     def __init__(self, 
