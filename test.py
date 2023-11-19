@@ -13,5 +13,5 @@ if __name__ == '__main__':
                 Step('audio cover', MESSAGE_TYPE_AUDIO),
             ]),
         ]),
-        discoverPlugins(Path('.'))
+        discoverPlugins(Path('plugins'))
     ))

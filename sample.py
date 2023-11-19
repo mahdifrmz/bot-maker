@@ -10,7 +10,7 @@ import aiofiles
 from mimetypes import guess_extension
 from asyncio import Queue, create_task, Task
 from botmakerapi import TelegramClient, TelegramMessage
-import plugin1.plugin as bmp1
+import plugins.plugin1.plugin as bmp1
 
 plugins = [
     bmp1.handlers

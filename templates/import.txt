@@ -10,4 +10,4 @@ from asyncio import Queue, create_task, Task
 from botmakerapi import TelegramClient, TelegramMessage
 %
 plugins = [
-    %]
+%]

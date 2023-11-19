@@ -1,5 +1,6 @@
 import PySimpleGUI as sg
 import os
+import shutil
 from pathlib import Path
 from codegen import Bot, Generator, Command, Step, Plugin, discoverPlugins
 
@@ -11,7 +12,7 @@ MEDIA_TYPES = ['Text','Image','Audio','Video','Document']
 
 bot = Bot()
 bot.storage_root = STORAGE_PATH
-plugins = discoverPlugins(Path('.'))
+plugins = discoverPlugins(Path('plugins'))
 
 def next_button():
     return sg.Button('Next >',key = EVENT_NEXT_BUTTON)
@@ -93,6 +94,35 @@ while True:
         break
     elif event == sg.WIN_CLOSED:
         exit(0)
+
+window.close()
+
+# Plugins Form
+
+panel = []
+
+for plugin in plugins:
+    panel.append([sg.Checkbox(plugin.name)])
+panel.append([next_button()])
+
+window = sg.Window(WINDOW_TITLE, panel)
+
+while True:
+    ev = window.read()
+    if ev == None:
+        continue
+    event, values = ev
+    if event == EVENT_NEXT_BUTTON:
+        break
+    elif event == sg.WIN_CLOSED:
+        exit(0)
+
+if True:
+    plugs : list[Plugin] = []
+    for i in range(len(plugins)):
+        if panel[i][0].get():
+            plugs.append(plugins[i])
+    plugins = plugs
 
 window.close()
 
@@ -311,10 +341,22 @@ src = Generator().generate(bot,plugins)
 path = Path.joinpath(Path(bot_path), bot_name)
 storage_path = Path.joinpath(path, STORAGE_PATH)
 src_path = Path.joinpath(path, 'bot.py')
+plugins_path = Path.joinpath(path, 'plugins')
 
 os.mkdir(path)
 os.mkdir(storage_path)
 open(src_path,'w').write(src)
+
+for plugin in plugins:
+    print('plugin:',plugin.name)
+    print(
+        Path('plugins').joinpath(plugin.name),
+        plugins_path.joinpath(plugin.name)
+    )
+    shutil.copytree(
+        Path('plugins').joinpath(plugin.name),
+        plugins_path.joinpath(plugin.name)
+    )
 
 # Done
 
