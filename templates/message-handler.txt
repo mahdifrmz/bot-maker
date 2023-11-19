@@ -6,4 +6,6 @@ async def handleMessage(update: Update, context: ContextTypes.DEFAULT_TYPE):
     state = StateManager.get(id)
     if(state == None):
         await context.bot.send_message(chat_id=id, text=RESPONSE_INVALID)
+    elif(state.step == -1):
+        await state.sendToQueue(TelegramMessage(message))
 %

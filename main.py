@@ -1,7 +1,7 @@
 import PySimpleGUI as sg
 import os
 from pathlib import Path
-from codegen import Bot, Generator, Command, Step
+from codegen import Bot, Generator, Command, Step, Plugin, discoverPlugins
 
 WINDOW_TITLE = 'Bot Maker Wizard'
 EVENT_NEXT_BUTTON = '_NEXT_'
@@ -11,6 +11,7 @@ MEDIA_TYPES = ['Text','Image','Audio','Video','Document']
 
 bot = Bot()
 bot.storage_root = STORAGE_PATH
+plugins = discoverPlugins(Path('.'))
 
 def next_button():
     return sg.Button('Next >',key = EVENT_NEXT_BUTTON)
@@ -155,9 +156,12 @@ def getStepIndex() -> int:
     else:
         return indexes[0]
 
-def hasCommand(bot:Bot, command_name:str) -> bool:
+def hasCommand(bot:Bot, plugins:list[Plugin], command_name:str) -> bool:
     for cmd in bot.commands:
         if cmd.name == command_name:
+            return True
+    for plugin in plugins:
+        if command_name in plugin.commands:
             return True
     return False
 
@@ -180,7 +184,7 @@ while True:
             error_empty('name')
         elif(len(fieldSucMes) == 0):
             error_empty('success message')
-        elif(hasCommand(bot,fieldName)):
+        elif(hasCommand(bot, plugins, fieldName)):
             sg.popup_ok('Command names must be unique',title='Error')
         else:
             bot.commands.append(Command(fieldName,fieldSucMes))
@@ -302,7 +306,7 @@ window.close()
 
 # Generate bot
 
-src = Generator().generate(bot)
+src = Generator().generate(bot,plugins)
 
 path = Path.joinpath(Path(bot_path), bot_name)
 storage_path = Path.joinpath(path, STORAGE_PATH)

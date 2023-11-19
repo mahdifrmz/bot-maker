@@ -9,6 +9,8 @@ if __name__ == "__main__":
 
     application = ApplicationBuilder().token(BOT_TOKEN).build()
 
+    installPluginHandlers(application)
+
     message_handler = MessageHandler(~filters.COMMAND, handleMessage)
     application.add_handler(message_handler)
 

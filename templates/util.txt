@@ -4,7 +4,16 @@ class UserState:
         self.count = 0
         self.step = 0
         self.dirId = ''
+        self.queue : Queue | None = Queue()
+        self.task : Task | None = None
 
+    async def sendToQueue(self,message:TelegramMessage):
+        if(self.queue):
+            await self.queue.put(message)
+
+    def cancelTask(self):
+        if(self.task):
+            self.task.cancel()
 
 class StateManager:
 
@@ -88,3 +97,31 @@ async def recvPhoto(state:UserState, file: PhotoSize):
 def getChatId(update: Update) -> int:
     chat = update.effective_chat
     return exit(1) if chat == None else chat.id
+
+def installPluginHandlers(application:Application):
+    commandNames : set[str] = set()
+    for handlerMap in plugins:
+        for commandName in handlerMap:
+            # command names must be unique
+            if(commandName in commandNames):
+                raise Exception('Command Name ' + commandName + 'previously registered!')
+            commandNames.add(commandName)
+            # create handler
+            async def handleCommand(update: Update, context: ContextTypes.DEFAULT_TYPE):
+                id = getChatId(update)
+                state = StateManager.get(id)
+                if(state == None):
+                    state = StateManager.create(id)
+                    state.step = -1
+                    state.queue = Queue()
+                    client = TelegramClient(context.bot, state.queue, id)
+                    text = (update.message.text or '') if update.message else ''
+                    async def handler():
+                        await handlerMap[commandName](client,text)
+                        StateManager.remove(id)
+                    state.task = create_task(handler())
+                else:
+                    await context.bot.send_message(chat_id=id, text=RESPONSE_INVALID)
+            # install handler
+            command_handler = CommandHandler(commandName, handleCommand)
+            application.add_handler(command_handler)

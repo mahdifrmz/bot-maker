@@ -1,10 +1,13 @@
 import logging
 import uuid
 import os
-from telegram import Update , Video, Audio, Voice, PhotoSize
-from telegram.ext import ApplicationBuilder, ContextTypes, CommandHandler, MessageHandler,filters
+from telegram import Update , Video, Audio, Voice, PhotoSize, Bot, Document, Message
+from telegram.ext import Application, ApplicationBuilder, ContextTypes, CommandHandler, MessageHandler,filters
 from pathlib import Path
 import aiofiles
 from mimetypes import guess_extension
 from asyncio import Queue, create_task, Task
 from botmakerapi import TelegramClient, TelegramMessage
+%
+plugins = [
+    %]

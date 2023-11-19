@@ -126,9 +126,10 @@ class Bot:
         self.commands.append(command)
 
 class Generator:
-    def generate(self,bot:Bot) -> str:
+    def generate(self,bot:Bot,plugins:list[Plugin]) -> str:
         self.bot = bot
         self.src = ''
+        self.plugins = plugins
         self.assignIds()
         self.generateImports()
         self.generateConstants()
@@ -159,7 +160,14 @@ class Generator:
                 gid += 1 
     
     def generateImports(self):
-        self.write(importTemplate)
+        importSnippet = ''
+        listSnippet = ''
+        idx = 0
+        for plugin in self.plugins:
+            idx += 1
+            importSnippet += str.format('import {}.plugin as bmp{}\n', plugin.name, idx)
+            listSnippet += str.format('bmp{}.handlers,\n',idx)
+        self.write(render(importTemplate,[importSnippet, listSnippet]))
 
     def generateConstants(self):
         self.write(constantsTemplate)
