@@ -4,13 +4,17 @@ import logging
 import uuid
 import os
 from telegram import Update , Video, Audio, Voice, PhotoSize, Bot, Document, Message
-from telegram.ext import ApplicationBuilder, ContextTypes, CommandHandler, MessageHandler,filters
+from telegram.ext import Application, ApplicationBuilder, ContextTypes, CommandHandler, MessageHandler,filters
 from pathlib import Path
 import aiofiles
 from mimetypes import guess_extension
-from asyncio import Queue, create_task
+from asyncio import Queue, create_task, Task
 from botmakerapi import TelegramClient, TelegramMessage
-from plugins.plugin import handlers
+import plugin1.plugin as bmp1
+
+plugins = [
+    bmp1.handlers
+]
 
 # constants
 
@@ -81,8 +85,16 @@ class UserState:
         self.count = 0
         self.step = 0
         self.dirId = ''
-        self.queue = Queue()
-        self.task = None
+        self.queue : Queue | None = Queue()
+        self.task : Task | None = None
+
+    async def sendToQueue(self,message:TelegramMessage):
+        if(self.queue):
+            await self.queue.put(message)
+
+    def cancelTask(self):
+        if(self.task):
+            self.task.cancel()
 
 class StateManager:
 
@@ -167,14 +179,43 @@ def getChatId(update: Update) -> int:
     chat = update.effective_chat
     return exit(1) if chat == None else chat.id
 
+def installPluginHandlers(application:Application):
+    
+    commandNames : set[str] = set()
+    
+    for handlerMap in plugins:
+        for commandName in handlerMap:
+            # command names must be unique
+            if(commandName in commandNames):
+                raise Exception('Command Name ' + commandName + 'previously registered!')
+            commandNames.add(commandName)
+            # create handler
+            async def handleCommand(update: Update, context: ContextTypes.DEFAULT_TYPE):    
+                id = getChatId(update)
+                state = StateManager.get(id)
+                if(state == None):
+                    state = StateManager.create(id)
+                    state.step = -1
+                    state.queue = Queue()
+                    client = TelegramClient(context.bot, state.queue, id)
+                    text = (update.message.text or '') if update.message else ''
+                    async def handler():
+                        await handlerMap[commandName](client,text)
+                        StateManager.remove(id)
+                    state.task = create_task(handler())
+                else:
+                    await context.bot.send_message(chat_id=id, text=RESPONSE_INVALID)
+            # install handler
+            command_handler = CommandHandler(commandName, handleCommand)
+            application.add_handler(command_handler)
+
 # basic handlers
 
 async def handleCancel(update: Update, context: ContextTypes.DEFAULT_TYPE):
     id = getChatId(update)
     state = StateManager.get(id)
     if(state):
-        if(state.task):
-            state.task.cancel()
+        state.cancelTask()
         Storage.remove(state.dirId)
         StateManager.remove(id)
         await context.bot.send_message(chat_id=id, text=RESPONSE_CANCEL)
@@ -223,20 +264,6 @@ async def handleCommand2(update: Update, context: ContextTypes.DEFAULT_TYPE):
     else:
         await context.bot.send_message(chat_id=id, text=RESPONSE_INVALID)
 
-async def handleCommand3(update: Update, context: ContextTypes.DEFAULT_TYPE):    
-    id = getChatId(update)
-    state = StateManager.get(id)
-    if(state == None):
-        state = StateManager.create(id)
-        state.step = -1
-        client = TelegramClient(context.bot,state.queue,id)
-        async def handler():
-            await handlers[COMMAND3_NAME](client,update.message.text)
-            StateManager.remove(id)
-        state.task = create_task(handler())
-    else:
-        await context.bot.send_message(chat_id=id, text=RESPONSE_INVALID)
-
 # message handler
 
 async def handleMessage(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -248,7 +275,7 @@ async def handleMessage(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if(state == None):
         return await context.bot.send_message(chat_id=id, text=RESPONSE_INVALID)
     if(state.step == -1):
-        return await state.queue.put(TelegramMessage(update.message))
+        return await state.sendToQueue(TelegramMessage(message))
     # COMMAND 1
     elif (state.step == USERSTATE_CMD1_STEP1):
         if(message.text):
@@ -308,6 +335,8 @@ if __name__ == "__main__":
 
     application = ApplicationBuilder().token(BOT_TOKEN).build()
 
+    installPluginHandlers(application)
+        
     message_handler = MessageHandler(~filters.COMMAND, handleMessage)
     application.add_handler(message_handler)
 
@@ -316,9 +345,6 @@ if __name__ == "__main__":
 
     command2_handler = CommandHandler(COMMAND2_NAME, handleCommand2)
     application.add_handler(command2_handler)
-
-    command3_handler = CommandHandler(COMMAND3_NAME, handleCommand3)
-    application.add_handler(command3_handler)
 
     help_handler = CommandHandler(COMMAND_HELP, handleHelp)
     application.add_handler(help_handler)
