@@ -9,7 +9,7 @@ from pathlib import Path
 import aiofiles
 from mimetypes import guess_extension
 from asyncio import Queue, create_task
-from api import TelegramClient, TelegramMessage
+from botmakerapi import TelegramClient, TelegramMessage
 from plugins.plugin import handlers
 
 # constants

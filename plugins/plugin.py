@@ -1,4 +1,4 @@
-from api import TelegramClient
+from botmakerapi import TelegramClient
 
 async def qinHandler(client:TelegramClient, text:str):
     print("MIRROR START")
