@@ -165,7 +165,12 @@ class Generator:
         idx = 0
         for plugin in self.plugins:
             idx += 1
-            importSnippet += str.format('import plugins.{}.plugin as bmp{}\n', plugin.name, idx)
+            importSnippet += str.format('''
+import plugins.{}.plugin as bmp{}
+if(hasattr(bmp{},"__plugin_init__")):
+    bmp{}.__plugin_init__()
+
+''', plugin.name, idx, idx, idx)
             listSnippet += str.format('\tbmp{}.handlers,\n',idx)
         self.write(render(importTemplate,[importSnippet, listSnippet]))
 
