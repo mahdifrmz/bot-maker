@@ -1,6 +1,76 @@
+### Basic in-memory ticket system ###
+
+lastGenId = 0
+
+def genId() -> int:
+    global lastGenId
+
+    lastGenId += 1
+    return lastGenId
+
+
+class Message:
+    def __init__(self, content:str, authorIsUser:bool) -> None:
+       self.content = content
+       self.authorIsUser = authorIsUser
+
+class Ticket:
+    
+    def __init__(self, userId:int, title:str, firstMessage : Message) -> None:
+        self.title = title
+        self.userId = userId
+        self.id = genId()
+        self.messages = [firstMessage]
+        self.isOpen = True
+
+ticketsMap : dict[int,Ticket] = {}
+
+def ticket_log(data:str):
+    print(data)
+### User API ###
+
+async def ticket_new(userId : int, title : str, content : str) -> int:
+    mesg = Message(content, True)
+    ticket = Ticket(userId, title, mesg)
+    ticketsMap[ticket.id] = ticket
+    # TODO: INFORM OPERATOR
+    ticket_log('|{}|<{}>| -> {}'.format(ticket.id,ticket.title,mesg.content))
+    return ticket.id
+
+async def ticket_list(userId : int) -> list[tuple[bool,str]]:
+    ticketList = []
+    for ticketId in ticketsMap:
+        ticket = ticketsMap[ticketId]
+        if(userId == ticket.userId):
+            ticketList.append((ticket.isOpen,ticket.title))
+    return ticketList
+
+async def ticket_status(ticketId : int) -> bool:
+    ticket = ticketsMap[ticketId]
+    return ticket.isOpen
+
+async def ticket_resume(ticketId : int, content : str):
+    mesg = Message(content,True)
+    ticket = ticketsMap[ticketId]
+    ticket.messages.append(mesg)
+    ticket_log('|{}|<{}>| -> {}'.format(ticket.id,ticket.title,mesg.content))
+    # TODO: INFORM OPERATOR
+
+async def ticket_reopen(ticketId : int):
+    ticket = ticketsMap[ticketId]
+    ticket.isOpen = True
+    ticket_log('|{}|<{}>| -> OPEN'.format(ticket.id,ticket.title))
+
+async def ticket_close(ticketId : int):
+    ticket = ticketsMap[ticketId]
+    ticket.isOpen = False
+    ticket_log('|{}|<{}>| -> CLOSE'.format(ticket.id,ticket.title))
+
+
+### Plugin ###
+
 from botmakerapi import TelegramClient, TelegramMessage
 from pathlib import Path
-import ticket
 
 TICKET_MESSAGE_ENTER_TITLE = 'عنوان تیکت را وارد کنید.'
 TICKET_MESSAGE_ENTER_CONTENT = 'توضیح مشکلی که در حین استفاده از ربات  به آن برخوردید را وارد کنید'
@@ -35,12 +105,13 @@ async def ticketNewHandler(client:TelegramClient, _:str):
     (titleId, title) = await recvString(client)
     await client.send(TICKET_MESSAGE_ENTER_CONTENT)
     (contentId, content) = await recvString(client)
-    ticketId = await ticket.ticket_new(client.chatId,title,content)
+    ticketId = await ticket_new(client.chatId,title,content)
     messageTicketMap[contentId] = ticketId
+    await client.send(TICKET_MESSAGE_OK)
 
 async def ticketListHandler(client:TelegramClient, _:str):
     mesg = ''
-    for (status,title) in await ticket.ticket_list(client.chatId):
+    for (status,title) in await ticket_list(client.chatId):
         mesg += title + '\n'
         mesg += 'status: ' + ('open' if status else 'closed') + '\n\n'
     await client.send(mesg)
@@ -51,30 +122,31 @@ async def ticketResumeHandler(client:TelegramClient, _:str):
     ticketId = messageTicketMap[client.replyMessageId]
     await client.send(TICKET_MESSAGE_ENTER_CONTENT)
     (contentId, content) = await recvString(client)
-    await ticket.ticket_resume(ticketId, content)
+    await ticket_resume(ticketId, content)
     messageTicketMap[contentId] = ticketId
+    await client.send(TICKET_MESSAGE_OK)
 
 async def ticketStatusHandler(client:TelegramClient, _:str):
     if(client.replyMessageId == 0):
         return await client.send(TICKET_ERROR_REPLY)
     ticketId = messageTicketMap[client.replyMessageId]
-    status = 'OPEN' if ticket.ticket_status(ticketId) else 'CLOSED'
+    status = 'OPEN' if ticket_status(ticketId) else 'CLOSED'
     await client.send(status)
 
 async def ticketReopenHandler(client:TelegramClient, _:str):
     if(client.replyMessageId == 0):
         return await client.send(TICKET_ERROR_REPLY)
     ticketId = messageTicketMap[client.replyMessageId]
-    await ticket.ticket_reopen(ticketId)
+    await ticket_reopen(ticketId)
 
 async def ticketCloseHandler(client:TelegramClient, _:str):
     if(client.replyMessageId == 0):
         return await client.send(TICKET_ERROR_REPLY)
     ticketId = messageTicketMap[client.replyMessageId]
-    await ticket.ticket_close(ticketId)
+    await ticket_close(ticketId)
 
 async def ticketHelpHandler(client:TelegramClient, _:str):
-    return TICKET_HELP
+    await client.send(TICKET_HELP)
 
 def __plugin_init__():
     pass
@@ -88,5 +160,5 @@ handlers = {
     'ticket_reopen' : ticketReopenHandler,
     'ticket_close' : ticketCloseHandler,
     'ticket_help' : ticketHelpHandler,
-    '__plugin_init__': __plugin_init__,
+    '__plugin_init__' : __plugin_init__,
 }
