@@ -1,6 +1,13 @@
-storage/
 __pycache__/
+
+# bot storage root
+storage/
+
+# Sample auto-generated bot
 sample.py
+
+# Plugin Data
 plugins/list/list.txt
 plugins/subscription/subscriptions.txt
 plugins/feedback/feedback/
+plugins/library/library/

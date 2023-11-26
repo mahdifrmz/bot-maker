@@ -30,7 +30,13 @@ def discoverPlugins(path: Path) -> list[Plugin]:
                     plugins.append(Plugin(entry,commandNames))
     return plugins
 
+MANUAL_START = ''' راهنمای ربات
 
+/start  آغاز کار با ربات
+/help   نمایش دستورات ربات
+/cancel لغو دستور فعلی
+
+'''
 MANUAL_PLUGIN_DESC = 'مجموعه دستورات'
 PLUGINS_DIR = Path('plugins')
 
@@ -40,6 +46,8 @@ def __plugin_init__():
     
     global man
     
+    man += MANUAL_START
+
     for plugin in discoverPlugins(PLUGINS_DIR):
         
         man += MANUAL_PLUGIN_DESC
