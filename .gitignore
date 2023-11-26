@@ -1,3 +1,6 @@
 storage/
 __pycache__/
+sample.py
 plugins/list/list.txt
+plugins/subscription/subscriptions.txt
+plugins/feedback/feedback/
