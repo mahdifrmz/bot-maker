@@ -98,15 +98,21 @@ def getChatId(update: Update) -> int:
     chat = update.effective_chat
     return exit(1) if chat == None else chat.id
 
-def getPluginCommandHandler(commandName:str, pluginhandler):
+def getPluginCommandHandler(pluginhandler):
     async def handleCommand(update: Update, context: ContextTypes.DEFAULT_TYPE):
         id = getChatId(update)
         state = StateManager.get(id)
         if(state == None):
+            message = update.message
+            if(message == None):
+                return
+            repId = 0
+            if(message.reply_to_message != None):
+                repId = message.reply_to_message.id
             state = StateManager.create(id)
             state.step = -1
             state.queue = Queue()
-            client = TelegramClient(context.bot, state.queue, id)
+            client = TelegramClient(context.bot, state.queue, id, message.id, repId)
             text = (update.message.text or '') if update.message else ''
             async def handler():
                 await pluginhandler(client, text)
@@ -127,7 +133,7 @@ def installPluginHandlers(application:Application):
                 raise Exception('Command Name ' + commandName + 'previously registered!')
             commandNames.add(commandName)
             # create handler
-            handler = getPluginCommandHandler(commandName,handlerMap[commandName])
+            handler = getPluginCommandHandler(handlerMap[commandName])
             # install handler
             command_handler = CommandHandler(commandName, handler)
             application.add_handler(command_handler)

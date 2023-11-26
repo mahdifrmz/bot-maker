@@ -1,4 +1,5 @@
 __pycache__/
+local/
 
 # bot storage root
 storage/
@@ -9,5 +10,5 @@ sample.py
 # Plugin Data
 plugins/list/list.txt
 plugins/subscription/subscriptions.txt
-plugins/feedback/feedback/
+plugins/ticket/tickets/
 plugins/library/library/

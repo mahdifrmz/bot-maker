@@ -10,13 +10,16 @@ class TelegramMessage:
         self.audio = message.audio
         self.video = message.video
         self.document = message.document
+        self.id = message.id
 
 class TelegramClient:
     
-    def __init__(self, bot:Bot, queue: Queue, chatId:int):
+    def __init__(self, bot:Bot, queue: Queue, chatId:int, messageId:int, replyMessageId:int):
         self.bot = bot
         self.queue = queue
         self.chatId = chatId
+        self.messageId = messageId
+        self.replyMessageId = replyMessageId
 
     async def send(self, message: str):
         await self.bot.send_message(chat_id=self.chatId, text=message)
