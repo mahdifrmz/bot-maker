@@ -294,3 +294,25 @@ if(hasattr(bmp{},"__plugin_init__")):
             ])
         code = render(mainTemplate,[bindings],'$')
         self.write(code)
+
+class BotMakerContext:
+    def __init__(self,storage_root:str):
+        self.bot = Bot()
+        self.bot.storage_root = storage_root
+        self.botOutput = [
+            '', # Path
+            '' # Name
+        ]
+        self.plugins = []
+        self.plugins_selection = []
+    
+    def setPlugins(self, plugins:list[Plugin]):
+        self.plugins = plugins
+        self.plugins_selection = [False] * len(plugins)
+    
+    def addedPlugins(self) -> list[Plugin]:
+        added = []
+        for i in range(len(self.plugins)):
+            if self.plugins_selection[i]:
+                added.append(self.plugins[i])
+        return added

@@ -1,12 +1,12 @@
 import PySimpleGUI as sg
 
-from codegen import Bot
-from ui.general import WINDOW_TITLE, next_button, back_button, EVENT_NEXT_BUTTON, EVENT_BACK_BUTTON, error_empty
+from codegen import Bot, BotMakerContext
+from general import WINDOW_TITLE, next_button, back_button, EVENT_NEXT_BUTTON, EVENT_BACK_BUTTON, error_empty
 
-def runView(bot: Bot) -> bool:
+def runView(context:BotMakerContext) -> bool:
     
-    cancel_message_field = sg.Multiline(size=(45,10), default_text=bot.resp_cancel)
-    invalid_message_field = sg.Multiline(size=(45,10), default_text=bot.resp_invalid)
+    cancel_message_field = sg.Multiline(size=(45,10), default_text=context.bot.resp_cancel)
+    invalid_message_field = sg.Multiline(size=(45,10), default_text=context.bot.resp_invalid)
 
     window = sg.Window(WINDOW_TITLE, [
         [sg.Text('Enter the bot\'s"/cancel" message:')],
@@ -27,12 +27,12 @@ def runView(bot: Bot) -> bool:
                 error_empty('cancel message')
                 continue
             else:
-                bot.resp_cancel = cancel_message_field.get()
+                context.bot.resp_cancel = cancel_message_field.get()
             if(len(invalid_message_field.get()) == 0):
                 error_empty('error')
                 continue
             else:
-                bot.resp_invalid = invalid_message_field.get()
+                context.bot.resp_invalid = invalid_message_field.get()
             break
         elif event == EVENT_BACK_BUTTON:
             winrsl = False

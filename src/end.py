@@ -1,7 +1,7 @@
 import PySimpleGUI as sg
-from ui.general import WINDOW_TITLE, finish_button, EVENT_FINISH_BUTTON
-
-def runView():
+from general import WINDOW_TITLE, finish_button, EVENT_FINISH_BUTTON
+from codegen import BotMakerContext
+def runView(context: BotMakerContext) -> bool:
     window = sg.Window(WINDOW_TITLE, [[sg.Text('''
     Bot generated successfully!
                          ''')],[finish_button()]]
@@ -18,3 +18,4 @@ def runView():
             exit(0)
 
     window.close()
+    return True

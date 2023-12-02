@@ -1,12 +1,13 @@
 import PySimpleGUI as sg
 
-from ui.general import next_button,back_button,WINDOW_TITLE,EVENT_NEXT_BUTTON,EVENT_BACK_BUTTON
+from general import next_button,back_button,WINDOW_TITLE,EVENT_NEXT_BUTTON,EVENT_BACK_BUTTON
+from codegen import BotMakerContext
 
-def runView(plugins: list[str], plugin_checks: list[bool]) -> bool:
+def runView(context:BotMakerContext) -> bool:
     panel = []
 
-    for i in range(len(plugins)):
-        panel.append([sg.Checkbox(plugins[i],plugin_checks[i])])
+    for i in range(len(context.plugins)):
+        panel.append([sg.Checkbox(context.plugins[i].name, context.plugins_selection[i])])
     panel.append([back_button(),next_button()])
 
     window = sg.Window(WINDOW_TITLE, panel)
@@ -25,8 +26,8 @@ def runView(plugins: list[str], plugin_checks: list[bool]) -> bool:
         elif event == sg.WIN_CLOSED:
             exit(0)
 
-    for i in range(len(plugins)):
-        plugin_checks[i] = panel[i][0].get()
+    for i in range(len(context.plugins)):
+        context.plugins_selection[i] = panel[i][0].get()
     
     window.close()
     return winrsl

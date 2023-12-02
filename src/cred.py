@@ -1,13 +1,13 @@
 import PySimpleGUI as sg
 
-from ui.general import WINDOW_TITLE, EVENT_NEXT_BUTTON, EVENT_BACK_BUTTON, error_empty, next_button, back_button
-from codegen import Bot
+from general import WINDOW_TITLE, EVENT_NEXT_BUTTON, EVENT_BACK_BUTTON, error_empty, next_button, back_button
+from codegen import BotMakerContext
 
-def runView(bot:Bot) -> bool:
+def runView(context: BotMakerContext) -> bool:
     
-    token_field = sg.In(default_text=bot.token)
-    cancel_message_field = sg.Multiline(default_text=bot.resp_cancel, size=(45,10))
-    invalid_message_field = sg.Multiline(default_text=bot.resp_invalid, size=(45,10))
+    token_field = sg.In(default_text=context.bot.token)
+    cancel_message_field = sg.Multiline(default_text=context.bot.resp_start, size=(45,10))
+    invalid_message_field = sg.Multiline(default_text=context.bot.resp_help, size=(45,10))
 
     window = sg.Window(WINDOW_TITLE, [
         [sg.Text('Enter the bot API token you received from the Bot Father:')],
@@ -31,17 +31,17 @@ def runView(bot:Bot) -> bool:
                 error_empty('token')
                 continue
             else:
-                bot.token = token_field.get()
+                context.bot.token = token_field.get()
             if(len(cancel_message_field.get()) == 0):
                 error_empty('start message')
                 continue
             else:
-                bot.resp_start = cancel_message_field.get()
+                context.bot.resp_start = cancel_message_field.get()
             if(len(invalid_message_field.get()) == 0):
                 error_empty('help')
                 continue
             else:
-                bot.resp_help = invalid_message_field.get()
+                context.bot.resp_help = invalid_message_field.get()
             break
         elif event == EVENT_BACK_BUTTON:
             winrsl = False

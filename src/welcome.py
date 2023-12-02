@@ -1,8 +1,9 @@
 import PySimpleGUI as sg
 
-from ui.general import WINDOW_TITLE, next_button, EVENT_NEXT_BUTTON
+from general import WINDOW_TITLE, next_button, EVENT_NEXT_BUTTON
+from codegen import BotMakerContext
 
-def runView():
+def runView(context: BotMakerContext) -> bool:
     window = sg.Window(WINDOW_TITLE, [[sg.Text('''
     Welcome to Bot Maker!
     This wizard will help you to create a Telegram bot.
@@ -22,3 +23,4 @@ def runView():
             exit(0)
 
     window.close()
+    return True
