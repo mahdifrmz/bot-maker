@@ -44,8 +44,8 @@ HELP_METADATA ='''
 The first field is the /cancel command message. The /cancel
 command is used to abort an on-going conversation to start
 a new one.
-The invalid parameter is what the bot sends to user when they
-send an invalid message to the bot.
+The error messsage is what the bot sends to user when they
+send an invalid input to the bot.
 '''
 
 HELP_GETPATH ='''
