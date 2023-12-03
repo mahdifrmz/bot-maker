@@ -1,7 +1,8 @@
 import PySimpleGUI as sg
 
-from general import WINDOW_TITLE, EVENT_NEXT_BUTTON, EVENT_BACK_BUTTON, error_empty, next_button, back_button
+from general import EVENT_HELP_BUTTON, WINDOW_TITLE, EVENT_NEXT_BUTTON, EVENT_BACK_BUTTON, error_empty, help_button, next_button, back_button
 from codegen import BotMakerContext
+from help import show_help, HELP_CREDENTIALS
 
 def runView(context: BotMakerContext) -> bool:
     
@@ -16,7 +17,8 @@ def runView(context: BotMakerContext) -> bool:
         [cancel_message_field],
         [sg.Text('Enter the bot\'s "/help" message:')],
         [invalid_message_field],
-        [back_button(), next_button()]
+        [back_button(), next_button()],
+        [help_button()]
     ])
 
     winrsl = True
@@ -46,6 +48,8 @@ def runView(context: BotMakerContext) -> bool:
         elif event == EVENT_BACK_BUTTON:
             winrsl = False
             break
+        elif event == EVENT_HELP_BUTTON:
+            show_help(HELP_CREDENTIALS)
         elif event == sg.WIN_CLOSED:
             exit(0)
 

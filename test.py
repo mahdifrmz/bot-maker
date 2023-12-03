@@ -1,4 +1,4 @@
-from src.codegen import *
+from codegen import *
 
 if __name__ == '__main__':
     print(Generator().generate(

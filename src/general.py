@@ -4,6 +4,7 @@ WINDOW_TITLE = 'Bot Maker Wizard'
 EVENT_NEXT_BUTTON = '_NEXT_'
 EVENT_FINISH_BUTTON = '_FINISH_'
 EVENT_BACK_BUTTON = '_BACK_'
+EVENT_HELP_BUTTON = '_HELP_'
 
 def next_button():
     return sg.Button('Next >',key = EVENT_NEXT_BUTTON)
@@ -13,6 +14,9 @@ def back_button():
 
 def finish_button():
     return sg.Button('Finish',key = EVENT_FINISH_BUTTON)
+
+def help_button():
+    return sg.Button('?',key = EVENT_HELP_BUTTON)
 
 def error_empty(field:str):
     sg.popup_ok(field + ' field must be filled',title='Error')

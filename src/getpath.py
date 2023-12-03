@@ -1,7 +1,8 @@
 import PySimpleGUI as sg
 
-from general import WINDOW_TITLE, next_button, back_button, EVENT_NEXT_BUTTON, EVENT_BACK_BUTTON, error_empty
+from general import EVENT_HELP_BUTTON, WINDOW_TITLE, help_button, next_button, back_button, EVENT_NEXT_BUTTON, EVENT_BACK_BUTTON, error_empty
 from codegen import BotMakerContext
+from help import HELP_GETPATH, show_help
 
 def runView(context: BotMakerContext) -> bool:
     bot_path_field = sg.FolderBrowse(key='_PATH_')
@@ -12,7 +13,8 @@ def runView(context: BotMakerContext) -> bool:
         [bot_name_field],
         [sg.Text('Enter the path for bot installation:')],
         [bot_path_field],
-        [back_button(), next_button()]
+        [back_button(), next_button()],
+        [help_button()]
     ])
 
     winrsl = True
@@ -37,6 +39,8 @@ def runView(context: BotMakerContext) -> bool:
         elif event == EVENT_BACK_BUTTON:
             winrsl = False
             break
+        elif event == EVENT_HELP_BUTTON:
+            show_help(HELP_GETPATH)
         elif event == sg.WIN_CLOSED:
             exit(0)
 

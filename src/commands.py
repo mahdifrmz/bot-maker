@@ -1,8 +1,9 @@
 import PySimpleGUI as sg
 
 from codegen import Bot, Plugin, Command, Step
-from general import next_button,back_button, WINDOW_TITLE, error_empty, EVENT_NEXT_BUTTON, EVENT_BACK_BUTTON
+from general import EVENT_HELP_BUTTON, help_button, next_button,back_button, WINDOW_TITLE, error_empty, EVENT_NEXT_BUTTON, EVENT_BACK_BUTTON
 from codegen import BotMakerContext
+from help import HELP_COMMANDS, show_help
 
 MEDIA_TYPES = ['Text','Image','Audio','Video','Document']
 
@@ -40,7 +41,9 @@ def runView(context:BotMakerContext) -> bool:
         [command_name],
         [sg.Text('Success Message:')],
         [command_success_message],
-        [back_button(),add_command_button,delete_command_button,next_button()]
+        [back_button(),add_command_button,delete_command_button,next_button()],
+        [help_button()]
+
     ]
 
     steps_list = []
@@ -150,6 +153,9 @@ def runView(context:BotMakerContext) -> bool:
             currentStepIndex = getStepIndex()
         elif event == sg.WIN_CLOSED:
             exit(0)
+        elif event == EVENT_HELP_BUTTON:
+            show_help(HELP_COMMANDS)
+
 
     window.close()
     return winrsl

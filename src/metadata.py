@@ -1,7 +1,8 @@
 import PySimpleGUI as sg
 
 from codegen import Bot, BotMakerContext
-from general import WINDOW_TITLE, next_button, back_button, EVENT_NEXT_BUTTON, EVENT_BACK_BUTTON, error_empty
+from general import EVENT_HELP_BUTTON, WINDOW_TITLE, help_button, next_button, back_button, EVENT_NEXT_BUTTON, EVENT_BACK_BUTTON, error_empty
+from help import HELP_METADATA, show_help
 
 def runView(context:BotMakerContext) -> bool:
     
@@ -13,7 +14,8 @@ def runView(context:BotMakerContext) -> bool:
         [cancel_message_field],
         [sg.Text('Enter error message for invalid input:')],
         [invalid_message_field],
-        [back_button(), next_button()]
+        [back_button(), next_button()],
+        [help_button()]
     ])
 
     winrsl = True
@@ -39,6 +41,8 @@ def runView(context:BotMakerContext) -> bool:
             break
         elif event == sg.WIN_CLOSED:
             exit(0)
+        elif event == EVENT_HELP_BUTTON:
+            show_help(HELP_METADATA)
 
     window.close()
     return winrsl
